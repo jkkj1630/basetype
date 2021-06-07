@@ -1,0 +1,9 @@
+#ifndef VDEFINE_H
+#define VDEFINE_H
+
+#define MAX_INT32	2147483647
+#define MIN_INT32	-2147483647
+
+#define VINVALID_SOCKET -1
+
+#endif // VDEFINE_H
