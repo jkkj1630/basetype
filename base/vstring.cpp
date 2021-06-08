@@ -256,11 +256,6 @@ vstring vstring::toBase64()
     return vcrypto::Base64Encode(*this);
 }
 
-vchar vstring::at(vint32 i) const
-{
-    return data()[i];
-}
-
 bool vstring::endWith(const vchar&ch) const
 {
     return data()[length() - 1] == ch;

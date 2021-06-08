@@ -22,8 +22,6 @@ public:
 
     }
 
-    vchar at(vint32 i) const;
-
     bool startWith(const vchar&ch) const;
     bool startWith(const vchar*s) const;
     bool startWith(const vstring&s) const;
