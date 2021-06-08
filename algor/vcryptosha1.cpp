@@ -25,8 +25,8 @@ vbytes vcryptosha1::compute()
 {
     vuint64 bigSize = endianLittleToBig64(_msgSz << 3);
     vuchar bigSizBt[8];
-    memcpy(bigSizBt, (vuchar*)&bigSize, 8);
-    appendData((vptr)"\200", 1);
+    memcpy(bigSizBt, &bigSize, 8);
+    appendData(static_cast<vconst_ptr>("\200"), 1);
 
     if(_encodeBuffer.size() > 55) {
         vbytes tmpBuf;
@@ -46,11 +46,11 @@ vbytes vcryptosha1::compute()
     appendData(&bigSize, 8);
 
     vbytes hash(20);
-    *((int*)hash.addrByte(0)) = endianLittleToBig32(_h[0]);
-    *((int*)hash.addrByte(4)) = endianLittleToBig32(_h[1]);
-    *((int*)hash.addrByte(8)) = endianLittleToBig32(_h[2]);
-    *((int*)hash.addrByte(12)) = endianLittleToBig32(_h[3]);
-    *((int*)hash.addrByte(16)) = endianLittleToBig32(_h[4]);
+    *reinterpret_cast<int*>(hash.addrByte(0)) = endianLittleToBig32(_h[0]);
+    *reinterpret_cast<int*>(hash.addrByte(4)) = endianLittleToBig32(_h[1]);
+    *reinterpret_cast<int*>(hash.addrByte(8)) = endianLittleToBig32(_h[2]);
+    *reinterpret_cast<int*>(hash.addrByte(12)) = endianLittleToBig32(_h[3]);
+    *reinterpret_cast<int*>(hash.addrByte(16)) = endianLittleToBig32(_h[4]);
     return hash;
 }
 
@@ -77,9 +77,9 @@ void vcryptosha1::appendData(const vbytes&b)
     }
 }
 
-void vcryptosha1::appendData(const vptr data, const vint32 len)
+void vcryptosha1::appendData(vconst_ptr data, const vint32 len)
 {
-    appendData(vbytes((const vchar*)data, len));
+    appendData(vbytes(static_cast<vconst_char_ptr>(data), len));
 }
 
 void vcryptosha1::chunk()
@@ -91,9 +91,9 @@ void vcryptosha1::chunk()
     vuint32 h4 = _h[3];
     vuint32 h5 = _h[4];
 
-    vuint32*chunk = (vuint32*)_encodeBuffer.data();
+    vuint32*chunk = static_cast<vuint32*>(_encodeBuffer.data());
     for(vint32 i = 0;i < 16;i++) {
-        ((vuint32*)_encodeBuffer.data())[i] = endianBigToLittle32(((vuint32*)_encodeBuffer.data())[i]);
+        (static_cast<vuint32*>(_encodeBuffer.data())[i]) = endianBigToLittle32((static_cast<vuint32*>(_encodeBuffer.data()))[i]);
     }
     round0(chunk,  0, h1,h2,h3,h4,h5); round0(chunk,  1, h5,h1,h2,h3,h4); round0(chunk,  2, h4,h5,h1,h2,h3); round0(chunk,  3, h3,h4,h5,h1,h2);
     round0(chunk,  4, h2,h3,h4,h5,h1); round0(chunk,  5, h1,h2,h3,h4,h5); round0(chunk,  6, h5,h1,h2,h3,h4); round0(chunk,  7, h4,h5,h1,h2,h3);

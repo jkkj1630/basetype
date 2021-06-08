@@ -17,7 +17,10 @@ using vuint64 = unsigned long long;
 
 using vfloat32 = float;
 
+using vdouble64 = double;
+
 using vchar_ptr = char*;
+using vconst_char_ptr = const char*;
 using vchar_const_ptr = char const *;
 using vptr = void*;
 using vconst_ptr = const void*;

@@ -2,7 +2,9 @@
 #define VBYTES_H
 
 #include <string.h>
+
 #include "vtypes.h"
+#include "vstring.h"
 
 namespace  fcpp{
 
@@ -47,8 +49,8 @@ public:
     vptr append(vconst_ptr src, vint32 lenOfByte);
     vptr append(const vbytes&b);
 
-    vstr toBase64();
-    vstr toHexStr();
+    vstring toBase64();
+    vstring toHexStr();
 
     void moveFrom(vbytes&b, const vint32 lenOfByte);
 

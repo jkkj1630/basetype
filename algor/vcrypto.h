@@ -16,7 +16,7 @@ public:
     static vstring Base64Encode(const vbytes&b);
     static vstring Base64Encode(const vstring&s);
 
-    static vbytes& Base64Decode(const vstring&s);
+    static vbytes Base64Decode(const vstring&s);
 
 private:
 

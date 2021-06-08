@@ -1,10 +1,11 @@
 #ifndef VBASISTIME_H
 #define VBASISTIME_H
 
-#include "vtypes.h"
 #include <stdlib.h>
 #include <time.h>
 #include <sys/time.h>
+
+#include "vtypes.h"
 
 inline vint64 vcurNs()
 {
@@ -16,14 +17,14 @@ inline vint64 vcurNs()
 inline vint64 vcurUs()
 {
     struct timeval tv;
-    gettimeofday(&tv, NULL);
+    gettimeofday(&tv, nullptr);
     return tv.tv_sec*1000000 + tv.tv_usec;
 }
 
 inline vint64 vcurMs()
 {
     struct timeval tv;
-    gettimeofday(&tv, NULL);
+    gettimeofday(&tv, nullptr);
     return tv.tv_sec*1000000 + tv.tv_usec;
 }
 

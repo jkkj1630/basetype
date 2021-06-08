@@ -15,7 +15,7 @@ public:
     vbytes compute();
 
     void appendData(const vbytes&);
-    void appendData(const vchar_const_ptr data, vint32 len);
+    void appendData(const vchar_const_ptr data, vuint32 len);
 
 private:
 
@@ -33,4 +33,4 @@ private:
 };
 
 }
-#endif // VBYTES_H
+#endif // VCRYPTOMD5_H

@@ -2,34 +2,27 @@
 #define VSTRING_H
 
 #include <string>
+#include <vector>
 
-#include "vtypes.h"
+namespace  fcpp{
 
 class vstring;
 
-#ifdef VVEC_H_
-#include "vvec.h"
-using vstringvec = vvec<vstring>;
-#else
-#include <vector>
-using vstringvec = ::std::vector<vstring>;
-#endif
-
-namespace  fcpp{
+using vstringvec = std::vector<vstring>;
 
 class vstring : public std::string
 {
 public:
     vstring();
-    vstring(const vchar*p);
-    ~vstring();
+    vstring(const vchar*p) : std::string(p) {
+    }
+    vstring(const std::string&s) : std::string(s) {
+    }
+    ~vstring() {
+
+    }
 
     vchar at(vint32 i) const;
-
-    vint32 find(const vchar&ch)  const;
-    vint32 find(vint32 start, const vchar ch) const;
-    vint32 find(vint32 start, const vchar*s) const;
-    vint32 find(vint32 start, const vstring&s) const;
 
     bool startWith(const vchar&ch) const;
     bool startWith(const vchar*s) const;
@@ -37,7 +30,7 @@ public:
 
     bool endWith(const vchar&ch) const;
 
-    vstring& removeAt(vint32 start, vint32 len = 1);
+    vstring& remove(size_type start, size_type len = 1);
     vstring& remove(const vchar&ch);
     vstring& remove(const vchar*s);
     vstring& remove(const vstring&s);
@@ -52,12 +45,10 @@ public:
     vstring subEndWith(const vstring&end) const;
     vstring subEndWithOut(const vstring&end) const;
 
-    vstring& format(const vchar*fmt, ...);
+    vstring& format(const vchar*__restrict fmt, ...);
 
-#ifdef VVEC_H_
     vstringvec split(const vchar*sep) const;
     vstringvec split(const vstring&sep) const;
-#endif
 
     bool isEmpty();
 
@@ -68,7 +59,7 @@ public:
     vfloat32 toFloat32();
     vstring toBase64();
 
-    static vstring fromFormat(const vchar*fmt, ...);
+    static vstring fromFormat(const vchar*__restrict fmt, ...);
     static vstring fromNum(const vint32 n);
 
     static vstring randomStr(vint32 len);
@@ -79,11 +70,11 @@ private:
 
     static bool vstrLess(const vchar *s1, const vchar *s2);
 
-    vstring& replace(const vchar*s1, vint32 len1, const vchar*s2, vint32 len2);
+    vstring& replace(const vchar*s1, size_type len1, const vchar*s2);
 
     inline void setStr(const vchar*);
 
 };
 
 }
-#endif // VSTR_H
+#endif // VSTRING_H

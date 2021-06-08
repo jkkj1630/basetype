@@ -22,7 +22,7 @@ vcryptomd5::~vcryptomd5()
 vbytes vcryptomd5::compute()
 {
     int count = _bytes.length32[0] & 0x3f;	/* Number of bytes in ctx->in */
-    vuchar *p = (vuchar *)_in + count;
+    vuchar *p = reinterpret_cast<vuchar*>(_in) + count;
 
     /* Set the first char of padding to 0x80.  There is always room. */
     *p++ = 0x80;
@@ -34,7 +34,7 @@ vbytes vcryptomd5::compute()
         memset(p, 0, count + 8);
         byteSwap(_in, 16);
         computeStep(_in);
-        p = (vuchar *)_in;
+        p = reinterpret_cast<vuchar*>(_in);
         count = 56;
     }
     memset(p, 0, count);
@@ -60,10 +60,10 @@ vbytes vcryptomd5::compute()
 
 void vcryptomd5::appendData(const vbytes&b)
 {
-    appendData((vchar_const_ptr)b.data(), b.size());
+    appendData(reinterpret_cast<vchar_const_ptr>(b.data()), b.size());
 }
 
-void vcryptomd5::appendData(vchar_const_ptr data, vint32 len)
+void vcryptomd5::appendData(vchar_const_ptr data, vuint32 len)
 {
     vuint32 t = _bytes.length32[0];
 
@@ -71,10 +71,10 @@ void vcryptomd5::appendData(vchar_const_ptr data, vint32 len)
 
     t = 64 - (t & 0x3f);
     if (t > len) {
-        memcpy((vuchar*)_in + 64 - t, data, len);
+        memcpy(reinterpret_cast<vuchar*>(_in) + 64 - t, data, len);
         return;
     }
-    memcpy((vuchar*)_in + 64 - t, data, t);
+    memcpy(reinterpret_cast<vuchar*>(_in) + 64 - t, data, t);
     byteSwap(_in, 16);
     computeStep(_in);
     data += t;
@@ -93,12 +93,12 @@ void vcryptomd5::appendData(vchar_const_ptr data, vint32 len)
 void vcryptomd5::byteSwap(vuint32 *buf, unsigned words)
 {
     const vuint32 byteOrderTest = 0x1;
-    if (((const char *)&byteOrderTest)[0] == 0) {
-        vuchar *p = (vuchar *)buf;
+    if (reinterpret_cast<vchar_const_ptr>(&byteOrderTest)[0] == 0) {
+        vuchar *p = reinterpret_cast<vuchar*>(buf);
 
         do {
-            *buf++ = (vuint32)((unsigned)p[3] << 8 | p[2]) << 16 |
-                ((unsigned)p[1] << 8 | p[0]);
+            *buf++ = static_cast<vuint32>(static_cast<unsigned>(p[3]) << 8 | p[2]) << 16 |
+                (static_cast<unsigned>(p[1]) << 8 | p[0]);
             p += 4;
         } while (--words);
     }

@@ -14,16 +14,6 @@ vstring::vstring()
 {
 }
 
-vstring::vstring(const vchar*p) : std::string(p)
-{
-}
-
-vstring::~vstring()
-{
-    //printf("~vstr()\n");
-}
-
-
 vint32 vstring::vstrlen(const vchar*s)
 {
     vint32 size = 0;
@@ -34,18 +24,18 @@ vint32 vstring::vstrlen(const vchar*s)
     return size;
 }
 
-vstring vstring::fromFormat(const vchar*fmt, ...)
+vstring vstring::fromFormat(const vchar*__restrict fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
     vbytes bstr;
-    int len = vsnprintf(NULL, 0, fmt, args);
+    int len = vsnprintf(nullptr, 0, fmt, args);
     if(len) {
-        va_start(args, fmt);
         bstr.resize(len + 1);
-        vsprintf((vchar*)bstr.data(), fmt, args);
     }
-    return vstring((const vchar*)bstr.data());
+    vsprintf(static_cast<vchar*>(bstr.data()), fmt, args);
+    va_end(args);
+    return vstring(static_cast<vchar*>(bstr.data()));
 }
 
 vstring vstring::fromNum(const vint32 n)
@@ -59,13 +49,13 @@ vstring vstring::randomStr(vint32 len)
     for (int i = 0;i < len;i++) {
         int randomType = vcurNs() & 2;
         if(randomType == 0) {
-            random += (vchar)((vcurNs() & 25) + 'a');
+            random += static_cast<vchar>((vcurNs() & 25) + 'a');
         }
         else if(randomType == 1) {
-            random += (vchar)((vcurNs() & 25) + 'A');
+            random += static_cast<vchar>((vcurNs() & 25) + 'A');
         }
         else {
-            random += (vchar)((vcurNs() & 9) + '0');
+            random += static_cast<vchar>((vcurNs() & 9) + '0');
         }
     }
     return random;
@@ -90,7 +80,6 @@ bool vstring::vstrLess(const vchar *s1, const vchar *s2)
     return false;
 }
 
-#ifdef VVEC_H_
 vstringvec vstring::split(const vchar*sep) const
 {
     return split(vstring(sep));
@@ -98,7 +87,7 @@ vstringvec vstring::split(const vchar*sep) const
 
 vstringvec vstring::split(const vstring&sep) const
 {
-    vint32 sepLen = sep.length();
+    size_type sepLen = sep.length();
     vstringvec vecSplited;
     const vchar*ptr = data();
     vstring tmp;
@@ -106,7 +95,7 @@ vstringvec vstring::split(const vstring&sep) const
         if(*ptr == sep[0])
         {
             bool bSame = true;
-            for (int i = 0; i < sepLen; i++) {
+            for (size_type i = 0; i < sepLen; i++) {
                 if(ptr[i] != sep[i])
                 {
                     bSame = false;
@@ -117,7 +106,7 @@ vstringvec vstring::split(const vstring&sep) const
             {
                 if(tmp.length())
                 {
-                    vecSplited.append(tmp);
+                    vecSplited.push_back(tmp);
                     tmp.empty();
                 }
                 ptr += sepLen;
@@ -129,11 +118,10 @@ vstringvec vstring::split(const vstring&sep) const
     }
     if(tmp.length())
     {
-        vecSplited.append(tmp);
+        vecSplited.push_back(tmp);
     }
     return vecSplited;
 }
-#endif
 
 bool vstring::isEmpty()
 {
@@ -143,8 +131,8 @@ bool vstring::isEmpty()
 vstring& vstring::toUpper()
 {
     vchar*pstr = data();
-    vint32 len = length();
-    for(vint32 i = 0; i < len; ++i)
+    size_type len = length();
+    for(size_type i = 0; i < len; ++i)
     {
         if(pstr[i] > 0x60 && pstr[i] < 0x7B)
         {
@@ -157,8 +145,8 @@ vstring& vstring::toUpper()
 vstring& vstring::toLower()
 {
     vchar*pstr = data();
-    vint32 len = length();
-    for(vint32 i = 0; i < len; ++i)
+    size_type len = length();
+    for(size_type i = 0; i < len; ++i)
     {
         if(pstr[i] > 0x40 && pstr[i] < 0x5B)
         {
@@ -197,8 +185,8 @@ vint32 vstring::toNum()
 vfloat32 vstring::toFloat32()
 {
     const vchar*s = data();
-    double tf;
-    int nc,d,i,j,neg;
+    vdouble64 tf;
+    vint32 nc,i,neg;
 
     tf = 0.0;
     if (s[0] == '-') {
@@ -260,7 +248,7 @@ vfloat32 vstring::toFloat32()
     if (neg) {
         tf *= -1.0;
     }
-    return(tf);
+    return static_cast<float>(tf);
 }
 
 vstring vstring::toBase64()
@@ -271,56 +259,6 @@ vstring vstring::toBase64()
 vchar vstring::at(vint32 i) const
 {
     return data()[i];
-}
-
-vint32 vstring::find(const vchar&ch) const
-{
-    return find(0, ch);
-}
-
-vint32 vstring::find(vint32 start, const vchar ch) const
-{
-    int len = length();
-    for(vint32 i = start;i < len;++i)
-    {
-        if(data()[i] == ch)
-        {
-            return i;
-        }
-    }
-    return -1;
-}
-
-vint32 vstring::find(vint32 start, const vchar*s) const
-{
-    while((start = find(start, s[0])) != -1) {
-        int count = 0;
-        int len1 = length() - start;
-        int len2 = vstrlen(s);
-        while (1) {
-            if(count < len2) {
-                if(count < len1) {
-                    if(data()[count + start] != s[count]) {
-                        break;
-                    }
-                }
-                else {
-                    return -1;
-                }
-            }
-            else {
-                return start;
-            }
-            ++count;
-        }
-        start++;
-    }
-    return -1;
-}
-
-vint32 vstring::find(vint32 start, const vstring&s) const
-{
-    return find(start, s.data());
 }
 
 bool vstring::endWith(const vchar&ch) const
@@ -335,9 +273,9 @@ bool vstring::startWith(const vchar&ch) const
 
 bool vstring::startWith(const vchar*s) const
 {
-    int index = 0;
-    int len1 = length();
-    int len2 = vstrlen(s);
+    size_type index = 0;
+    size_type len1 = length();
+    size_type len2 = vstrlen(s);
     while (1) {
         if(index < len2) {
             if(index < len1) {
@@ -362,17 +300,17 @@ bool vstring::startWith(const vstring&s) const
     return startWith(s.data());
 }
 
-vstring& vstring::removeAt(vint32 start, vint32 len)
+vstring& vstring::remove(size_type start, size_type len)
 {
-    this->erase(start, len);
+    erase(start, start + len);
     return *this;
 }
 
 vstring& vstring::remove(const vchar&ch)
 {
-    vint32 index = 0;
-    while ((index = find(index, ch)) != -1) {
-        removeAt(index);
+    size_type index = 0;
+    while ((index = find(ch, index)) != npos) {
+        erase(index, 1);
     }
     return *this;
 }
@@ -380,9 +318,9 @@ vstring& vstring::remove(const vchar&ch)
 vstring& vstring::remove(const vchar*s)
 {
     int len = vstrlen(s);
-    vint32 index = 0;
-    while ((index = find(index, s)) != -1) {
-        removeAt(index, len);
+    size_type index = 0;
+    while ((index = find(s, index)) != npos) {
+        remove(index, len);
     }
     return *this;
 }
@@ -392,23 +330,23 @@ vstring& vstring::remove(const vstring&s)
     return remove(s.data());
 }
 
-vstring& vstring::format(const vchar*fmt, ...)
+vstring& vstring::format(const vchar*__restrict fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    int len = vsnprintf(NULL, 0, fmt, args);
+    int len = std::vsnprintf(nullptr, 0, fmt, args);
     if(len) {
-        va_start(args, fmt);
         resize(len + 1);
-        vsprintf(data(), fmt, args);
     }
+    vsprintf(data(), fmt, args);
+    va_end(args);
     return *this;
 }
 
-vstring& vstring::replace(const vchar*s1, vint32 len1, const vchar*s2, vint32 len2)
+vstring& vstring::replace(const vchar*s1, size_type len1, const vchar*s2)
 {
-    vint32 index = 0;
-    while ((index = find(index, s1)) != -1) {
+    size_type index = 0;
+    while ((index = find(s1, index)) != npos) {
         std::string::replace(index, len1, s2);
     }
     return *this;
@@ -416,73 +354,71 @@ vstring& vstring::replace(const vchar*s1, vint32 len1, const vchar*s2, vint32 le
 
 vstring& vstring::replace(const vchar*s1, const vchar*s2)
 {
-    vint32 len1 = vstrlen(s1);
-    vint32 len2 = vstrlen(s2);
-    return replace(s1, len1, s2, len2);
+    size_type len1 = vstrlen(s1);
+    return replace(s1, len1, s2);
 }
 
 vstring& vstring::replace(const vstring&s1, const vchar*s2)
 {
-    vint32 len2 = vstrlen(s2);
-    return replace(s1.data(), s1.length(), s2, len2);
+    return replace(s1.data(), s1.length(), s2);
 }
 
 vstring& vstring::replace(const vchar*s1, const vstring&s2)
 {
-    vint32 len1 = vstrlen(s1);
-    return replace(s1, len1, s2.data(), s2.length());
+    size_type len1 = vstrlen(s1);
+    return replace(s1, len1, s2.data());
 }
 
 vstring& vstring::replace(const vstring&s1, const vstring&s2)
 {
-    return replace(s1.data(), s1.length(), s2.data(), s2.length());
+    return replace(s1.data(), s1.length(), s2.data());
 }
 
 vstring vstring::subBeginWith(const vstring&begin) const
 {
-    vint32 beginIndex = find(begin);
-    if(beginIndex != -1) {
-        return vstr(str() + beginIndex);
+    size_type beginIndex = std::string::find(begin);
+    if(beginIndex != npos) {
+        return vstring(data() + beginIndex);
     }
     else {
-        return vstr(*this);
+        return vstring(*this);
     }
 }
 
 vstring vstring::subBeginWithOut(const vstring&begin) const
 {
-    vint32 endIndex = find(begin);
-    if(endIndex != -1) {
-        return vstr(str() + endIndex + begin.length());
+    size_type endIndex = find(begin);
+    if(endIndex != npos) {
+        return vstring(data() + endIndex + begin.length());
     }
     else {
-        return vstr(*this);
+        return vstring(*this);
     }
 }
 
 vstring vstring::subEndWith(const vstring&end) const
 {
-    vint32 endIndex = find(end);
-    if(endIndex != -1)
+    size_type endIndex = find(end);
+    if(endIndex != npos)
     {
-        return sub(0, endIndex + end.length());
+        return substr(0, endIndex + end.length());
     }
     else
     {
-        return vstr(*this);
+        return vstring(*this);
     }
 }
 
 vstring vstring::subEndWithOut(const vstring&end) const
 {
-    vint32 endIndex = find(end);
-    if(endIndex != -1)
+    size_type endIndex = find(end);
+    if(endIndex != npos)
     {
-        return sub(0, endIndex);
+        return substr(0, endIndex);
     }
     else
     {
-        return vstr(*this);
+        return vstring(*this);
     }
 }
 

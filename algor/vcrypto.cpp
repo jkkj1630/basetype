@@ -23,7 +23,7 @@ vstring vcrypto::Base64Encode(const vbytes&b)
     vint32 encodeIndex = 0;
     vint32 i = 0;
 
-    const vuchar*s = ((const vuchar*)b.data());
+    const vuchar*s = static_cast<const vuchar*>(b.data());
     for (encodeIndex = 0; i+3 <= len; i+=3)
     {
         tmpBuf[encodeIndex++] = alphabetMap[s[i]>>2];                             //取出第一个字符的前6位并找出对应的结果字符
@@ -59,7 +59,7 @@ vstring vcrypto::Base64Encode(const vstring&s)
 {
     vuchar alphabet_map[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-    vint32 textLen = s.length();
+    vint32 textLen = static_cast<vint32>(s.length());
     vint32 base64Len = textLen / 3 * 4 + 5;
     vchar*tmpBuf = new vchar[base64Len];
     memset(tmpBuf, 0, base64Len);
@@ -96,7 +96,7 @@ vstring vcrypto::Base64Encode(const vstring&s)
     return sRet;
 }
 
-vbytes& vcrypto::Base64Decode(const vstring&s)
+vbytes vcrypto::Base64Decode(const vstring&s)
 {
     vuchar reverse_map[] =
     {
@@ -109,31 +109,28 @@ vbytes& vcrypto::Base64Decode(const vstring&s)
         255, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
         41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 255, 255, 255, 255, 255
     };
-    vint32 i, decodeIndex = 0;
+    vint32 decodeIndex = 0;
     vuchar quad[4];
     vbytes byteRet;
-    vint32 codeLen = s.length();
+    vint32 codeLen = static_cast<vint32>(s.length());
     byteRet.resize(codeLen / 4 * 3 + 5);
-    for (i = 0; i < codeLen; i += 4)
-    {
-        for (vint32 k = 0; k < 4; k++)
-        {
-            quad[k] = reverse_map[s[i + k]];//分组，每组四个分别依次转换为base64表内的十进制数
+    for (vint32 i = 0; i < codeLen; i += 4) {
+        for (vint32 k = 0; k < 4; k++) {
+            quad[k] = reverse_map[static_cast<vint32>(s[i + k])];//分组，每组四个分别依次转换为base64表内的十进制数
         }
 
-        byteRet[decodeIndex++] = (quad[0] << 2) | (quad[1] >> 4); //取出第一个字符对应base64表的十进制数的前6位与第二个字符对应base64表的十进制数的前2位进行组合
+        byteRet[decodeIndex++] = static_cast<vuchar>(quad[0] << 2) | (quad[1] >> 4); //取出第一个字符对应base64表的十进制数的前6位与第二个字符对应base64表的十进制数的前2位进行组合
 
-        if (quad[2] >= 64)
-            break;
-        else if (quad[3] >= 64)
-        {
-            byteRet[decodeIndex++] = (quad[1] << 4) | (quad[2] >> 2); //取出第二个字符对应base64表的十进制数的后4位与第三个字符对应base64表的十进制数的前4位进行组合
+        if (quad[2] >= 64) {
             break;
         }
-        else
-        {
-            byteRet[decodeIndex++] = (quad[1] << 4) | (quad[2] >> 2);
-            byteRet[decodeIndex++] = (quad[2] << 6) | quad[3];//取出第三个字符对应base64表的十进制数的后2位与第4个字符进行组合
+        else if (quad[3] >= 64) {
+            byteRet[decodeIndex++] = static_cast<vuchar>(quad[1] << 4) | (quad[2] >> 2); //取出第二个字符对应base64表的十进制数的后4位与第三个字符对应base64表的十进制数的前4位进行组合
+            break;
+        }
+        else {
+            byteRet[decodeIndex++] = static_cast<vuchar>(quad[1] << 4) | (quad[2] >> 2);
+            byteRet[decodeIndex++] = static_cast<vuchar>(quad[2] << 6) | quad[3];//取出第三个字符对应base64表的十进制数的后2位与第4个字符进行组合
         }
     }
     return byteRet;
